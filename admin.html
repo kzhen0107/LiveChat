@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>客服控制台</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, push, onChildAdded, ref } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const chatRef = ref(db, "messages");
+
+    const log = document.getElementById("chatlog");
+    const msgInput = document.getElementById("msg");
+    const sendBtn = document.getElementById("send");
+
+    sendBtn.onclick = () => {
+      const text = msgInput.value.trim();
+      if (!text) return;
+      push(chatRef, { from: "admin", role: "admin", text, time: Date.now() });
+      msgInput.value = "";
+    };
+
+    onChildAdded(chatRef, (snapshot) => {
+      const msg = snapshot.val();
+      const div = document.createElement("div");
+      div.textContent = `${msg.role === "user" ? "👤" : "💼"} ${msg.text}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    });
+  </script>
+</head>
+<body style="font-family: sans-serif; max-width: 500px; margin: auto;">
+  <h2>💼 客服控制台</h2>
+  <div id="chatlog" style="height:300px;overflow:auto;border:1px solid #ccc;padding:10px;"></div>
+  <div style="margin-top:10px;">
+    <input id="msg" placeholder="回复消息..." style="width:75%;padding:8px;" />
+    <button id="send" style="padding:8px 12px;background:#007bff;color:white;border:none;border-radius:4px;">发送</button>
+  </div>
+</body>
+</html>
